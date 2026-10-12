@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CheckCircle2, Circle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCreateTask, useUpdateTask, type TaskStatus, type TaskWithProjects } from "@/lib/data";
+import { useCreateTask, useUpdateTask, type TaskPriority, type TaskStatus, type TaskWithProjects } from "@/lib/data";
 import { DuePicker, PersonPicker, PriorityPicker, StatusPicker } from "./bits";
 import { useTaskPanel } from "./TaskPanel";
 
@@ -49,21 +49,29 @@ export function QuickAdd({
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState<string | null>(defaultAssignee ?? null);
   const [due, setDue] = useState<string | null>(null);
+  const [priority, setPriority] = useState<TaskPriority>("none");
+  const [st, setSt] = useState<TaskStatus>(status ?? "todo");
   return (
     <form
-      className="flex items-center gap-2 px-4 py-2.5"
+      className="flex flex-wrap items-center gap-2 px-4 py-2.5"
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
-        create.mutate({ title, projectId, assignee_id: assignee, due_date: due, status });
+        create.mutate({ title, projectId, assignee_id: assignee ?? defaultAssignee ?? null, due_date: due, status: st, priority });
         setTitle("");
         setDue(null);
+        setPriority("none");
       }}
     >
       <Plus className="h-[18px] w-[18px] text-primary" />
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={placeholder} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
-      <DuePicker value={due} onChange={setDue} />
-      <PersonPicker compact value={assignee} onChange={setAssignee} />
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={placeholder} className="min-w-0 flex-1 basis-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+      <div className="flex items-center gap-1.5">
+        <StatusPicker value={st} onChange={setSt} />
+        <PriorityPicker value={priority} onChange={setPriority} />
+        <DuePicker value={due} onChange={setDue} />
+        <PersonPicker compact value={assignee ?? defaultAssignee ?? null} onChange={setAssignee} />
+        <button type="submit" className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">Add</button>
+      </div>
     </form>
   );
 }
