@@ -186,14 +186,16 @@ export const activityQuery = (taskId: string) =>
     },
   });
 
+export type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 export const notificationsQuery = queryOptions({
   queryKey: ["notifications"],
   queryFn: async () => {
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
+      .is("dismissed_at", null)
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(150);
     if (error) throw error;
     return data;
   },
