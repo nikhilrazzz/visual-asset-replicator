@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DOMAIN_ERROR, isAllowedEmail } from "@/lib/domain";
+import { InstallButton } from "@/components/mafia/InstallMafia";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional(), error: z.string().optional() }),
@@ -141,6 +142,7 @@ function AuthPage() {
                 </button>
                 {mode === "signin" && <button className="text-muted-foreground hover:text-foreground" onClick={forgot}>Forgot?</button>}
               </div>
+              <div className="mt-10 text-center"><InstallButton variant="subtle" /></div>
             </>
           )}
         </div>
