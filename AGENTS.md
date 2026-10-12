@@ -14,3 +14,5 @@
 - Notifications and activity rows are created only by database triggers, so no client path can skip them.
 - Allowed work-email domains are enforced by a trigger on auth.users and is_org_member() in RLS; src/lib/domain.ts mirrors the list for UX only.
 - Signed-in pages live under src/routes/_authenticated/ whose layout wraps them in AppShell (which also hosts the task detail panel and realtime subscriptions).
+- Web Push: notification INSERT trigger calls /api/public/push-dispatch via pg_net (stable production URL); the route only delivers rows still push_status='pending', so callers can't inject content. VAPID keys derive from the VAPID_SEED secret (src/lib/push.server.ts) so no key is stored in code.
+- public/push-sw.js is a push-only worker (no fetch/caching) so it is safe to register in any context; installability is manifest-only.

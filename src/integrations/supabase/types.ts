@@ -91,13 +91,74 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          assignments: boolean
+          comments: boolean
+          deadlines: boolean
+          email_enabled: boolean
+          projects: boolean
+          push_enabled: boolean
+          quiet_end: number | null
+          quiet_start: number | null
+          reviews: boolean
+          sound: boolean
+          status: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignments?: boolean
+          comments?: boolean
+          deadlines?: boolean
+          email_enabled?: boolean
+          projects?: boolean
+          push_enabled?: boolean
+          quiet_end?: number | null
+          quiet_start?: number | null
+          reviews?: boolean
+          sound?: boolean
+          status?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignments?: boolean
+          comments?: boolean
+          deadlines?: boolean
+          email_enabled?: boolean
+          projects?: boolean
+          push_enabled?: boolean
+          quiet_end?: number | null
+          quiet_start?: number | null
+          reviews?: boolean
+          sound?: boolean
+          status?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
+          category: string
           created_at: string
+          dismissed_at: string | null
           id: string
           message: string
           project_id: string | null
+          push_attempts: number
+          push_error: string | null
+          push_status: string
           read_at: string | null
           task_id: string | null
           type: string
@@ -105,10 +166,15 @@ export type Database = {
         }
         Insert: {
           actor_id?: string | null
+          category?: string
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           message: string
           project_id?: string | null
+          push_attempts?: number
+          push_error?: string | null
+          push_status?: string
           read_at?: string | null
           task_id?: string | null
           type: string
@@ -116,10 +182,15 @@ export type Database = {
         }
         Update: {
           actor_id?: string | null
+          category?: string
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           message?: string
           project_id?: string | null
+          push_attempts?: number
+          push_error?: string | null
+          push_status?: string
           read_at?: string | null
           task_id?: string | null
           type?: string
@@ -264,6 +335,50 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          failure_count: number
+          id: string
+          last_success_at: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          failure_count?: number
+          id?: string
+          last_success_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          failure_count?: number
+          id?: string
+          last_success_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_projects: {
         Row: {
           created_at: string
@@ -300,6 +415,7 @@ export type Database = {
       tasks: {
         Row: {
           assignee_id: string | null
+          assigner_id: string | null
           completed_at: string | null
           created_at: string
           creator_id: string
@@ -316,6 +432,7 @@ export type Database = {
         }
         Insert: {
           assignee_id?: string | null
+          assigner_id?: string | null
           completed_at?: string | null
           created_at?: string
           creator_id: string
@@ -332,6 +449,7 @@ export type Database = {
         }
         Update: {
           assignee_id?: string | null
+          assigner_id?: string | null
           completed_at?: string | null
           created_at?: string
           creator_id?: string
@@ -350,6 +468,13 @@ export type Database = {
           {
             foreignKeyName: "tasks_assignee_id_fkey"
             columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_assigner_id_fkey"
+            columns: ["assigner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

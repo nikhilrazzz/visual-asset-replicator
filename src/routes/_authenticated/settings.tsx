@@ -6,7 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/mafia/AppShell";
+import { PageHeader, signOutEverywhere } from "@/components/mafia/AppShell";
+import { InstallStatus } from "@/components/mafia/InstallMafia";
+import { NotificationSettings } from "@/components/mafia/NotificationSettings";
 import { PersonAvatar } from "@/components/mafia/bits";
 import { meQuery } from "@/lib/data";
 
@@ -51,10 +53,18 @@ function Settings() {
         <div><Label htmlFor="n">Full name</Label><Input id="n" className="mt-1" value={name} onChange={(e) => setName(e.target.value)} required /></div>
         <div><Label htmlFor="t">Role / title</Label><Input id="t" className="mt-1" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Designer" /></div>
         <div className="flex justify-between">
-          <Button type="button" variant="ghost" onClick={async () => { await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut(); navigate({ to: "/auth", replace: true }); }}>Sign out</Button>
+          <Button type="button" variant="ghost" onClick={async () => { await signOutEverywhere(qc); navigate({ to: "/auth", replace: true }); }}>Sign out</Button>
           <Button type="submit">Save</Button>
         </div>
       </form>
+      <section id="install" className="mx-5 mt-6 rounded-2xl border border-border bg-card p-6 shadow-soft md:mx-10">
+        <h2 className="mb-3 text-lg font-semibold">App installation</h2>
+        <InstallStatus />
+      </section>
+      <section id="notifications" className="mx-5 mt-6 rounded-2xl border border-border bg-card p-6 shadow-soft md:mx-10">
+        <h2 className="mb-3 text-lg font-semibold">Notifications</h2>
+        <NotificationSettings />
+      </section>
     </div>
   );
 }
