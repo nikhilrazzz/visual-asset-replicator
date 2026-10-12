@@ -124,6 +124,23 @@ export const myTasksQuery = queryOptions({
   },
 });
 
+export const assignedByMeQuery = queryOptions({
+  queryKey: ["tasks", "assigned-by-me"],
+  queryFn: async () => {
+    const id = await currentUserId();
+    if (!id) return [] as TaskWithProjects[];
+    const { data, error } = await supabase
+      .from("tasks")
+      .select(TASK_SELECT)
+      .eq("creator_id", id)
+      .not("assignee_id", "is", null)
+      .neq("assignee_id", id)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data as TaskWithProjects[];
+  },
+});
+
 export const taskQuery = (id: string) =>
   queryOptions({
     queryKey: ["task", id],
