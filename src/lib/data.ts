@@ -215,7 +215,7 @@ export function useCreateTask() {
       const row = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)) as typeof rest;
       const { data, error } = await supabase
         .from("tasks")
-        .insert({ ...(row as Record<string, never>), title: rest.title.trim(), creator_id: uid })
+        .insert({ ...(row as unknown as Record<string, never>), title: rest.title.trim(), creator_id: uid })
         .select()
         .single();
       if (error) throw error;

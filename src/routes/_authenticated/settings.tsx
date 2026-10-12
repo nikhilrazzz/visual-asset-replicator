@@ -38,7 +38,7 @@ function Settings() {
           e.preventDefault();
           if (!me) return;
           const { error } = await supabase.from("profiles").update({ full_name: name.trim(), title: title.trim() || null }).eq("id", me.id);
-          if (error) return toast.error(error.message);
+          if (error) { toast.error(error.message); return; }
           qc.invalidateQueries({ queryKey: ["me"] });
           qc.invalidateQueries({ queryKey: ["team"] });
           toast.success("Profile saved");
