@@ -12,7 +12,7 @@ let cached: VapidKeys | null = null;
 /** VAPID keypair derived deterministically from the VAPID_SEED secret. */
 export async function getVapid(): Promise<VapidKeys> {
   if (cached) return cached;
-  const seed = process.env.VAPID_SEED;
+  const seed = process.env["VAPID_SEED"];
   if (!seed) throw new Error("VAPID_SEED is not configured");
   const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("mafia-vapid:" + seed)));
   const pub = p256.getPublicKey(d, false);
@@ -34,7 +34,7 @@ export async function sendToSubs(subs: Sub[], content: PushContent) {
       subs.slice(i, i + 6).map(async (s) => {
         try {
           const payload = await buildPushPayload(
-            { data: JSON.stringify(content), options: { ttl: 60 * 60 * 24, urgency: "high", topic: content.tag?.slice(0, 32) } },
+            { data: JSON.stringify(content), options: { ttl: 60 * 60 * 24, urgency: "high", ...(content.tag ? { topic: content.tag.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32) } : {}) } },
             { endpoint: s.endpoint, expirationTime: null, keys: { p256dh: s.p256dh, auth: s.auth } },
             vapid,
           );

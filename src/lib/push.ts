@@ -41,7 +41,7 @@ export async function enablePush(): Promise<"ok" | "denied"> {
   }
   if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
   const j = sub.toJSON();
-  await savePushSubscription({ data: { endpoint: sub.endpoint, p256dh: j.keys!.p256dh, auth: j.keys!.auth, userAgent: navigator.userAgent.slice(0, 400) } });
+  await savePushSubscription({ data: { endpoint: sub.endpoint, p256dh: j.keys?.["p256dh"] ?? "", auth: j.keys?.["auth"] ?? "", userAgent: navigator.userAgent.slice(0, 400) } });
   return "ok";
 }
 

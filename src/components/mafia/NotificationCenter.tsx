@@ -42,7 +42,7 @@ export function groupNotifications(list: Notification[]) {
   const groups: Notification[][] = [];
   for (const n of list) {
     const last = groups[groups.length - 1];
-    if (last && n.task_id && last[0].task_id === n.task_id && last[0].type === n.type) last.push(n);
+    if (last && n.task_id && last[0]!.task_id === n.task_id && last[0]!.type === n.type) last.push(n);
     else groups.push([n]);
   }
   return groups;
@@ -58,7 +58,7 @@ export function useOpenNotification() {
       await supabase.from("notifications").update({ read_at: new Date().toISOString() }).in("id", unread);
       qc.invalidateQueries({ queryKey: ["notifications"] });
     }
-    const n = ns[0];
+    const n = ns[0]!;
     if (n.task_id) open(n.task_id);
     else if (n.project_id) navigate({ to: "/projects/$projectId", params: { projectId: n.project_id } });
   };
@@ -109,7 +109,7 @@ export function NotificationList({ onNavigate }: { onNavigate?: () => void }) {
       ) : (
         <ul className="divide-y divide-border overflow-y-auto rounded-2xl border border-border bg-card">
           {groups.map((g) => {
-            const n = g[0];
+            const n = g[0]!;
             const ids = g.map((x) => x.id);
             const isUnread = g.some((x) => !x.read_at);
             return (
