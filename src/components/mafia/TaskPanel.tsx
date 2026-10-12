@@ -246,10 +246,10 @@ function MentionButton({ onPick }: { onPick: (name: string, id: string) => void 
 const ACTION_LABEL: Record<string, (d: Record<string, unknown>) => string> = {
   created: () => "created this task",
   commented: () => "commented",
-  status_changed: (d) => `changed status to ${STATUSES.find((s) => s.value === d.to)?.label ?? d.to}`,
+  status_changed: (d) => `changed status to ${STATUSES.find((s) => s.value === d['to'])?.label ?? d['to']}`,
   assignee_changed: () => "changed the assignee",
-  due_changed: (d) => (d.to ? `set due date to ${d.to}` : "removed the due date"),
-  priority_changed: (d) => `set priority to ${d.to}`,
+  due_changed: (d) => (d['to'] ? `set due date to ${d['to']}` : "removed the due date"),
+  priority_changed: (d) => `set priority to ${d['to']}`,
   renamed: () => "renamed the task",
   added_to_project: () => "added this to a project",
 };

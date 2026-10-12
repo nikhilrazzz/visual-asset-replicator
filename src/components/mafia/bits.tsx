@@ -17,7 +17,7 @@ import {
   type TaskStatus,
 } from "@/lib/data";
 
-export function PersonAvatar({ person, size = 28 }: { person?: Profile | null; size?: number }) {
+export function PersonAvatar({ person, size = 28 }: { person?: Profile | null | undefined; size?: number }) {
   return (
     <span
       className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft font-semibold text-accent-foreground"

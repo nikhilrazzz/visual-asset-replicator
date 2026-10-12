@@ -40,9 +40,9 @@ export function QuickAdd({
   status,
   placeholder = "Add a task — press Enter",
 }: {
-  projectId?: string;
-  defaultAssignee?: string | null;
-  status?: TaskStatus;
+  projectId?: string | undefined;
+  defaultAssignee?: string | null | undefined;
+  status?: TaskStatus | undefined;
   placeholder?: string;
 }) {
   const create = useCreateTask();

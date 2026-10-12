@@ -13,6 +13,6 @@ export const DOMAIN_ERROR =
 /** Mentions are stored as @[Name](uuid). */
 export function extractMentionIds(body: string): string[] {
   const ids = new Set<string>();
-  for (const m of body.matchAll(/@\[[^\]]*\]\(([0-9a-f-]{36})\)/g)) ids.add(m[1]);
+  for (const m of body.matchAll(/@\[[^\]]*\]\(([0-9a-f-]{36})\)/g)) if (m[1]) ids.add(m[1]);
   return [...ids];
 }

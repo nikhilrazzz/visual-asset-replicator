@@ -202,19 +202,20 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: async (input: {
       title: string;
-      projectId?: string | null;
-      assignee_id?: string | null;
-      due_date?: string | null;
-      status?: TaskStatus;
-      priority?: TaskPriority;
-      parent_id?: string | null;
+      projectId?: string | null | undefined;
+      assignee_id?: string | null | undefined;
+      due_date?: string | null | undefined;
+      status?: TaskStatus | undefined;
+      priority?: TaskPriority | undefined;
+      parent_id?: string | null | undefined;
     }) => {
       const uid = await currentUserId();
       if (!uid) throw new Error("Please sign in again");
       const { projectId, ...rest } = input;
+      const row = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)) as typeof rest;
       const { data, error } = await supabase
         .from("tasks")
-        .insert({ ...rest, title: rest.title.trim(), creator_id: uid })
+        .insert({ ...(row as Record<string, never>), title: rest.title.trim(), creator_id: uid })
         .select()
         .single();
       if (error) throw error;
