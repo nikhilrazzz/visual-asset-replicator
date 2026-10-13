@@ -141,6 +141,21 @@ export const assignedByMeQuery = queryOptions({
   },
 });
 
+export const teamTasksQuery = queryOptions({
+  queryKey: ["tasks", "team-overview"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select(TASK_SELECT)
+      .not("assignee_id", "is", null)
+      .is("parent_id", null)
+      .neq("status", "done")
+      .order("due_date", { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data as TaskWithProjects[];
+  },
+});
+
 export const taskQuery = (id: string) =>
   queryOptions({
     queryKey: ["task", id],
