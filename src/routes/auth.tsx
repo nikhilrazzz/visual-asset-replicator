@@ -97,7 +97,7 @@ function AuthPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-foreground p-12 text-background lg:flex lg:flex-col lg:justify-between">
+      <div className="relative hidden overflow-hidden border-r border-border bg-sidebar p-12 text-sidebar-foreground lg:flex lg:flex-col lg:justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary font-display text-xl font-bold text-primary-foreground">M</span>
           <span className="font-display text-xl font-bold">Mafia</span>
