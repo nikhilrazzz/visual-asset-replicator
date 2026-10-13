@@ -4,9 +4,9 @@ import { isBefore, isToday, parseISO, startOfToday, addDays } from "date-fns";
 import { CheckCheck } from "lucide-react";
 import { PageHeader } from "@/components/mafia/AppShell";
 import { QuickAdd, TaskRow } from "@/components/mafia/TaskRow";
-import { EmptyState } from "@/components/mafia/bits";
+import { PersonAvatar, EmptyState } from "@/components/mafia/bits";
 import { useState } from "react";
-import { meQuery, myTasksQuery, assignedByMeQuery, type TaskWithProjects } from "@/lib/data";
+import { meQuery, myTasksQuery, assignedByMeQuery, teamTasksQuery, teamQuery, personName, type TaskWithProjects } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
@@ -39,8 +39,14 @@ function group(tasks: TaskWithProjects[]) {
 function HomePage() {
   const { data: me } = useQuery(meQuery);
   const { data: tasks = [], isLoading } = useQuery(myTasksQuery);
-  const [tab, setTab] = useState<"mine" | "byMe">("mine");
+  const [tab, setTab] = useState<"mine" | "byMe" | "team">("mine");
   const { data: byMe = [] } = useQuery(assignedByMeQuery);
+  const { data: teamTasks = [] } = useQuery(teamTasksQuery);
+  const { data: team = [] } = useQuery(teamQuery);
+  const byPerson = team
+    .map((p) => ({ p, list: teamTasks.filter((t) => t.assignee_id === p.id) }))
+    .filter((x) => x.list.length)
+    .sort((a, b) => b.list.length - a.list.length);
   const g = group(tasks);
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -64,16 +70,35 @@ function HomePage() {
           ))}
         </div>
         <div className="inline-flex rounded-full border border-border bg-card p-1 text-sm">
-          {([["mine", `Assigned to me (${tasks.length - g.done.length})`], ["byMe", `Assigned by me (${byMe.length})`]] as const).map(([k, l]) => (
+          {([["mine", `Assigned to me (${tasks.length - g.done.length})`], ["byMe", `Assigned by me (${byMe.length})`], ["team", `Team overview (${teamTasks.length})`]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setTab(k)} className={`rounded-full px-4 py-1.5 ${tab === k ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>{l}</button>
           ))}
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+        {tab !== "team" && <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
           {tab === "mine"
             ? <QuickAdd defaultAssignee={me?.id} placeholder="Add a task for yourself — press Enter" />
             : <QuickAdd placeholder="Assign a new task to a teammate — pick assignee, then Enter" />}
-        </div>
-        {tab === "byMe" ? (
+        </div>}
+        {tab === "team" ? (
+          byPerson.length === 0 ? (
+            <EmptyState icon={<CheckCheck />} title="No open assignments" body="Open tasks assigned to teammates will be grouped by person here." />
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {byPerson.map(({ p, list }) => (
+                <section key={p.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+                  <div className="flex items-center gap-3 border-b border-border p-3">
+                    <PersonAvatar person={p} size={32} />
+                    <div className="min-w-0 flex-1 truncate font-medium">{personName(p)}</div>
+                    <span className="text-xs text-muted-foreground">{list.length} open</span>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {list.map((t) => <TaskRow key={t.id} task={t} />)}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )
+        ) : tab === "byMe" ? (
           byMe.length === 0 ? (
             <EmptyState icon={<CheckCheck />} title="Nothing assigned yet" body="Tasks you assign to teammates will be tracked here." />
           ) : (
