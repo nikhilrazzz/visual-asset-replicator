@@ -13,6 +13,6 @@ export const Route = createFileRoute("/")({
   }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    throw redirect({ to: data.session ? "/home" : "/auth" });
+    throw redirect({ to: data.session ? "/home" : "/auth", replace: true });
   },
 });
