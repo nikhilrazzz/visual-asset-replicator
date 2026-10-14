@@ -56,7 +56,7 @@ function Live() {
       open(t);
       p.delete("task");
       const qs = p.toString();
-      window.history.replaceState(null, "", window.location.pathname + (qs ? `?${qs}` : ""));
+      window.history.replaceState(window.history.state, "", window.location.pathname + (qs ? `?${qs}` : ""));
     }
     const onMsg = (e: MessageEvent) => {
       if (e.data?.type === "open" && typeof e.data.url === "string") window.location.assign(e.data.url);
