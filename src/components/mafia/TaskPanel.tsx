@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { AtSign, Check, CheckCircle2, Circle, FolderPlus, Plus, Trash2, X } from "lucide-react";
@@ -30,12 +31,34 @@ export const useTaskPanel = () => useContext(Ctx);
 
 export function TaskPanelProvider({ children }: { children: ReactNode }) {
   const [taskId, setTaskId] = useState<string | null>(null);
+  const router = useRouter();
+  const flaggedRef = useRef(false);
+  // Browser back closes the panel instead of leaving the page.
+  useEffect(() => {
+    const onPop = () => {
+      flaggedRef.current = !!window.history.state?.taskPanel;
+      if (!flaggedRef.current) setTaskId(null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const open = useCallback((id: string) => {
+    if (!flaggedRef.current) {
+      router.history.push(window.location.pathname + window.location.search, { taskPanel: true });
+      flaggedRef.current = true;
+    }
+    setTaskId(id);
+  }, [router]);
+  const close = () => {
+    if (flaggedRef.current) router.history.back();
+    else setTaskId(null);
+  };
   return (
-    <Ctx.Provider value={{ open: setTaskId }}>
+    <Ctx.Provider value={{ open }}>
       {children}
-      <Sheet open={!!taskId} onOpenChange={(o) => !o && setTaskId(null)}>
+      <Sheet open={!!taskId} onOpenChange={(o) => !o && close()}>
         <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-xl">
-          {taskId && <TaskDetail id={taskId} onClose={() => setTaskId(null)} onOpen={setTaskId} />}
+          {taskId && <TaskDetail id={taskId} onClose={close} onOpen={open} />}
         </SheetContent>
       </Sheet>
     </Ctx.Provider>
