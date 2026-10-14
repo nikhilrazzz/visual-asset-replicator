@@ -62,11 +62,11 @@ export function TaskPanelProvider({ children }: { children: ReactNode }) {
         <SheetContent
           side="right"
           className="w-full overflow-y-auto p-0 sm:max-w-xl [&>button.absolute]:hidden"
-          onTouchStart={(e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; }}
+          onTouchStart={(e) => { const t = e.touches[0]; touch.current = t ? { x: t.clientX, y: t.clientY } : null; }}
           onTouchEnd={(e) => {
             const s = touch.current; touch.current = null;
             if (!s) return;
-            const t = e.changedTouches[0];
+            const t = e.changedTouches[0]; if (!t) return;
             const dx = t.clientX - s.x, dy = Math.abs(t.clientY - s.y);
             if (dx > 90 && dy < 60) close();
           }}
