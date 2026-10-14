@@ -1,5 +1,5 @@
 import { useLocation, useRouter } from "@tanstack/react-router";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { AtSign, Check, CheckCircle2, Circle, FolderPlus, Plus, Trash2, X } from "lucide-react";
@@ -35,10 +35,12 @@ export function TaskPanelProvider({ children }: { children: ReactNode }) {
   const flagged = useLocation({ select: (l) => !!(l.state as Record<string, unknown> | undefined)?.taskPanel });
   // Browser back closes the panel instead of leaving the page.
   useEffect(() => { if (!flagged) setTaskId(null); }, [flagged]);
-  const open = (id: string) => {
-    if (!flagged) router.history.push(window.location.pathname + window.location.search, { taskPanel: true });
+  const flaggedRef = useRef(flagged);
+  flaggedRef.current = flagged;
+  const open = useCallback((id: string) => {
+    if (!flaggedRef.current) router.history.push(window.location.pathname + window.location.search, { taskPanel: true });
     setTaskId(id);
-  };
+  }, [router]);
   const close = () => {
     if (flagged) router.history.back();
     else setTaskId(null);
