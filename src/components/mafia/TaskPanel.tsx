@@ -1,3 +1,4 @@
+import { useLocation, useRouter } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
@@ -30,12 +31,24 @@ export const useTaskPanel = () => useContext(Ctx);
 
 export function TaskPanelProvider({ children }: { children: ReactNode }) {
   const [taskId, setTaskId] = useState<string | null>(null);
+  const router = useRouter();
+  const flagged = useLocation({ select: (l) => !!(l.state as Record<string, unknown> | undefined)?.taskPanel });
+  // Browser back closes the panel instead of leaving the page.
+  useEffect(() => { if (!flagged) setTaskId(null); }, [flagged]);
+  const open = (id: string) => {
+    if (!flagged) router.history.push(window.location.pathname + window.location.search, { taskPanel: true });
+    setTaskId(id);
+  };
+  const close = () => {
+    if (flagged) router.history.back();
+    else setTaskId(null);
+  };
   return (
-    <Ctx.Provider value={{ open: setTaskId }}>
+    <Ctx.Provider value={{ open }}>
       {children}
-      <Sheet open={!!taskId} onOpenChange={(o) => !o && setTaskId(null)}>
+      <Sheet open={!!taskId} onOpenChange={(o) => !o && close()}>
         <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-xl">
-          {taskId && <TaskDetail id={taskId} onClose={() => setTaskId(null)} onOpen={setTaskId} />}
+          {taskId && <TaskDetail id={taskId} onClose={close} onOpen={open} />}
         </SheetContent>
       </Sheet>
     </Ctx.Provider>
