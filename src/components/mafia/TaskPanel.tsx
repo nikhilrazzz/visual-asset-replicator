@@ -34,7 +34,11 @@ export function TaskPanelProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const flagged = useLocation({ select: (l) => !!(l.state as Record<string, unknown> | undefined)?.taskPanel });
   // Browser back closes the panel instead of leaving the page.
-  useEffect(() => { if (!flagged) setTaskId(null); }, [flagged]);
+  const prevFlag = useRef(flagged);
+  useEffect(() => {
+    if (prevFlag.current && !flagged) setTaskId(null);
+    prevFlag.current = flagged;
+  }, [flagged]);
   const flaggedRef = useRef(flagged);
   flaggedRef.current = flagged;
   const open = useCallback((id: string) => {
