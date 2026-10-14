@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { AtSign, Check, CheckCircle2, Circle, FolderPlus, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, AtSign, Check, CheckCircle2, Circle, FolderPlus, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -53,11 +53,24 @@ export function TaskPanelProvider({ children }: { children: ReactNode }) {
     if (flaggedRef.current) router.history.back();
     else setTaskId(null);
   };
+  // Swipe right to close (mobile).
+  const touch = useRef<{ x: number; y: number } | null>(null);
   return (
     <Ctx.Provider value={{ open }}>
       {children}
       <Sheet open={!!taskId} onOpenChange={(o) => !o && close()}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-xl">
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto p-0 sm:max-w-xl [&>button.absolute]:hidden"
+          onTouchStart={(e) => { const t = e.touches[0]; touch.current = t ? { x: t.clientX, y: t.clientY } : null; }}
+          onTouchEnd={(e) => {
+            const s = touch.current; touch.current = null;
+            if (!s) return;
+            const t = e.changedTouches[0]; if (!t) return;
+            const dx = t.clientX - s.x, dy = Math.abs(t.clientY - s.y);
+            if (dx > 90 && dy < 60) close();
+          }}
+        >
           {taskId && <TaskDetail id={taskId} onClose={close} onOpen={open} />}
         </SheetContent>
       </Sheet>
@@ -88,7 +101,10 @@ function TaskDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; 
 
   return (
     <div className="flex min-h-full flex-col">
-      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card/95 px-5 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card/95 px-3 py-3 backdrop-blur sm:px-5">
+        <Button size="icon" variant="ghost" aria-label="Back" onClick={onClose}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <Button size="sm" variant={done ? "secondary" : "outline"} onClick={() => set({ status: done ? "todo" : "done" })}>
           <Check className="h-4 w-4" /> {done ? "Completed" : "Mark complete"}
         </Button>

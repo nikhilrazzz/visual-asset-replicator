@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Archive, CalendarDays, GanttChart, KanbanSquare, List, Lock, Trash2, UserPlus, Users } from "lucide-react";
+import { Archive, ArrowLeft, CalendarDays, GanttChart, KanbanSquare, List, Lock, Trash2, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,9 @@ function ProjectPage() {
   return (
     <div className="pb-10">
       <header className="px-5 pt-8 md:px-10">
+        <Link to="/projects" className="mb-3 inline-flex items-center gap-1 rounded-md py-1 pr-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> Projects
+        </Link>
         <div className="flex flex-wrap items-start gap-3">
           <span className={cn("mt-2 h-4 w-4 rounded-md", PROJECT_COLORS[project.color] ?? "bg-primary")} />
           <div className="min-w-0 flex-1">
