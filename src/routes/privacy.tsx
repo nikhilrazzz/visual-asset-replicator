@@ -31,7 +31,7 @@ function Privacy() {
         <h2>Keeping and deleting data</h2>
         <p>Data is kept while your work account is active. To have your account and data deleted, contact your Inflooo administrator or email us below.</p>
         <h2>Contact</h2>
-        <p>Questions about privacy: <a className="text-primary" href="mailto:team.inflooo@gmail.com">team.inflooo@gmail.com</a></p>
+        <p>Questions about privacy: <a className="text-primary" href="mailto:teaminflooo@gmail.com">teaminflooo@gmail.com</a></p>
       </div>
     </main>
   );
