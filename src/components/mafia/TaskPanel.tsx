@@ -32,7 +32,7 @@ export const useTaskPanel = () => useContext(Ctx);
 export function TaskPanelProvider({ children }: { children: ReactNode }) {
   const [taskId, setTaskId] = useState<string | null>(null);
   const router = useRouter();
-  const flagged = useLocation({ select: (l) => !!(l.state as Record<string, unknown> | undefined)?.taskPanel });
+  const flagged = useLocation({ select: (l) => !!(l.state as unknown as Record<string, unknown> | undefined)?.["taskPanel"] });
   // Browser back closes the panel instead of leaving the page.
   const prevFlag = useRef(flagged);
   useEffect(() => {
