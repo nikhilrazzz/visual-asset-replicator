@@ -36,6 +36,13 @@
       "when": 1792043055244,
       "tag": "0004_comment_reactions",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792044383325,
+      "tag": "0005_team_visible_unprojected_tasks",
+      "breakpoints": true
     }
   ]
 }
