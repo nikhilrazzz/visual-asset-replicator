@@ -29,6 +29,13 @@
       "when": 1791786736516,
       "tag": "0003_push_and_notification_centre",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792043055244,
+      "tag": "0004_comment_reactions",
+      "breakpoints": true
     }
   ]
 }
