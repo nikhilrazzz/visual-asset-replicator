@@ -47,8 +47,42 @@ function Settings() {
         }}
       >
         <div className="flex items-center gap-4">
-          <PersonAvatar person={me} size={56} />
-          <div className="text-sm text-muted-foreground">{me?.email}</div>
+          <PersonAvatar person={me} size={64} />
+          <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">{me?.email}</div>
+            <div className="flex gap-2">
+              <label className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">
+                {me?.avatar_url ? "Change photo" : "Upload photo"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file || !me) return;
+                    try {
+                      const url = await toAvatarDataUrl(file);
+                      const { error } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", me.id);
+                      if (error) throw error;
+                      qc.invalidateQueries({ queryKey: ["me"] });
+                      qc.invalidateQueries({ queryKey: ["team"] });
+                      toast.success("Profile photo updated");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Couldn't use that image");
+                    }
+                  }}
+                />
+              </label>
+              {me?.avatar_url && (
+                <Button type="button" variant="ghost" size="sm" onClick={async () => {
+                  await supabase.from("profiles").update({ avatar_url: null }).eq("id", me.id);
+                  qc.invalidateQueries({ queryKey: ["me"] });
+                  qc.invalidateQueries({ queryKey: ["team"] });
+                }}>Remove</Button>
+              )}
+            </div>
+          </div>
         </div>
         <div><Label htmlFor="n">Full name</Label><Input id="n" className="mt-1" value={name} onChange={(e) => setName(e.target.value)} required /></div>
         <div><Label htmlFor="t">Role / title</Label><Input id="t" className="mt-1" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Designer" /></div>
@@ -67,4 +101,15 @@ function Settings() {
       </section>
     </div>
   );
+}
+
+/** Crop to a centred square and shrink to 256px JPEG so the photo stays small. */
+async function toAvatarDataUrl(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("Please pick an image file");
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(bmp.width, bmp.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  canvas.getContext("2d")!.drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, 256, 256);
+  return canvas.toDataURL("image/jpeg", 0.85);
 }
