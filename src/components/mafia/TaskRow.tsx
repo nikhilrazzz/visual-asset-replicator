@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { CheckCircle2, Circle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCreateTask, useUpdateTask, type TaskPriority, type TaskStatus, type TaskWithProjects } from "@/lib/data";
-import { DuePicker, PersonPicker, PriorityPicker, StatusPicker } from "./bits";
+import { personName, useCreateTask, useUpdateTask, type TaskPriority, type TaskStatus, type TaskWithProjects } from "@/lib/data";
+import { DuePicker, PersonAvatar, PersonPicker, PriorityPicker, StatusPicker, useTeamMap } from "./bits";
 import { useTaskPanel } from "./TaskPanel";
 
 export function TaskRow({ task, showStatus = true }: { task: TaskWithProjects; showStatus?: boolean }) {
@@ -51,9 +51,26 @@ export function QuickAdd({
   const [due, setDue] = useState<string | null>(null);
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [st, setSt] = useState<TaskStatus>(status ?? "todo");
+  const { team } = useTeamMap();
+  const [mention, setMention] = useState<{ start: number; q: string } | null>(null);
+  const matches = mention
+    ? team.filter((p) => `${p.full_name ?? ""} ${p.email}`.toLowerCase().includes(mention.q)).slice(0, 6)
+    : [];
+  const onType = (value: string, caret: number) => {
+    setTitle(value);
+    const m = value.slice(0, caret).match(/(?:^|\s)@([^\s@]*)$/);
+    setMention(m ? { start: caret - m[1]!.length - 1, q: m[1]!.toLowerCase() } : null);
+  };
+  const pick = (id: string) => {
+    if (!mention) return;
+    const end = mention.start + 1 + mention.q.length;
+    setTitle(`${title.slice(0, mention.start)}${title.slice(end)}`.replace(/\s{2,}/g, " ").trimStart());
+    setAssignee(id);
+    setMention(null);
+  };
   return (
     <form
-      className="flex flex-wrap items-center gap-2 px-4 py-2.5"
+      className="relative flex flex-wrap items-center gap-2 px-4 py-2.5"
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
@@ -64,7 +81,26 @@ export function QuickAdd({
       }}
     >
       <Plus className="h-[18px] w-[18px] text-primary" />
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={placeholder} className="min-w-0 flex-1 basis-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+      {mention && matches.length > 0 && (
+        <div className="absolute left-4 top-full z-30 mt-1 w-72 max-w-[calc(100%-2rem)] overflow-hidden rounded-xl border border-border bg-popover p-1 shadow-lg">
+          {matches.map((p) => (
+            <button key={p.id} type="button" onMouseDown={(e) => { e.preventDefault(); pick(p.id); }} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted">
+              <PersonAvatar person={p} size={24} />
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium">{personName(p)}</div>
+                <div className="truncate text-xs text-muted-foreground">{p.email}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      <input value={title} onChange={(e) => onType(e.target.value, e.target.selectionStart ?? e.target.value.length)}
+        onBlur={() => setTimeout(() => setMention(null), 150)}
+        onKeyDown={(e) => {
+          if (mention && matches.length && (e.key === "Enter" || e.key === "Tab")) { e.preventDefault(); pick(matches[0]!.id); }
+          else if (e.key === "Escape") setMention(null);
+        }}
+        placeholder={placeholder} className="min-w-0 flex-1 basis-40 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
       <div className="flex items-center gap-1.5">
         <StatusPicker value={st} onChange={setSt} />
         <PriorityPicker value={priority} onChange={setPriority} />
