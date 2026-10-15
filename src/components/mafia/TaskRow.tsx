@@ -1,6 +1,6 @@
 import { VoiceRecorder } from "./Voice";
 import { useState } from "react";
-import { CheckCircle2, Circle, Plus } from "lucide-react";
+import { CheckCircle2, Circle, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { personName, useCreateTask, useUpdateTask, type TaskPriority, type TaskStatus, type TaskWithProjects } from "@/lib/data";
 import { DuePicker, PersonAvatar, PersonPicker, PriorityPicker, StatusPicker, useTeamMap } from "./bits";
