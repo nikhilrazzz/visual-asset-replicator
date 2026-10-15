@@ -50,6 +50,13 @@
       "when": 1792045274203,
       "tag": "0006_avatars_and_recurrence",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792046993709,
+      "tag": "0007_voice_notes_storage",
+      "breakpoints": true
     }
   ]
 }
