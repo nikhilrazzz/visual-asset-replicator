@@ -136,6 +136,25 @@ function TaskDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; 
           <dd><DuePicker value={task.start_date} onChange={(v) => set({ start_date: v })} /></dd>
           <dt className="text-muted-foreground">Due date</dt>
           <dd><DuePicker value={task.due_date} done={done} onChange={(v) => set({ due_date: v })} /></dd>
+          <dt className="text-muted-foreground">Repeat</dt>
+          <dd>
+            <select
+              aria-label="Repeat"
+              className="rounded-md border border-border bg-card px-2 py-1 text-sm"
+              value={(task as { recurrence?: string }).recurrence ?? "none"}
+              onChange={(e) => set({ recurrence: e.target.value } as never)}
+            >
+              <option value="none">Does not repeat</option>
+              <option value="daily">Every day</option>
+              <option value="weekdays">Every weekday (Mon–Fri)</option>
+              <option value="weekly">Every week</option>
+              <option value="monthly">Every month</option>
+              <option value="yearly">Every year</option>
+            </select>
+            {(task as { recurrence?: string }).recurrence && (task as { recurrence?: string }).recurrence !== "none" && (
+              <p className="mt-1 text-xs text-muted-foreground">When marked done, the next one is created automatically.</p>
+            )}
+          </dd>
           {!task.parent_id && (
             <>
               <dt className="text-muted-foreground">Projects</dt>
