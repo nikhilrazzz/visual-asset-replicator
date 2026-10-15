@@ -1,3 +1,4 @@
+import { VoiceRecorder } from "./Voice";
 import { useState } from "react";
 import { CheckCircle2, Circle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,7 @@ export function QuickAdd({
   const [due, setDue] = useState<string | null>(null);
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [st, setSt] = useState<TaskStatus>(status ?? "todo");
+  const [voice, setVoice] = useState<string | null>(null);
   const { team } = useTeamMap();
   const [mention, setMention] = useState<{ start: number; q: string } | null>(null);
   const matches = mention
@@ -74,8 +76,9 @@ export function QuickAdd({
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
-        create.mutate({ title, projectId, assignee_id: assignee ?? defaultAssignee ?? null, due_date: due, status: st, priority });
+        create.mutate({ title, projectId, assignee_id: assignee ?? defaultAssignee ?? null, due_date: due, status: st, priority, description: voice });
         setTitle("");
+        setVoice(null);
         setDue(null);
         setPriority("none");
       }}
@@ -104,6 +107,9 @@ export function QuickAdd({
       <div className="flex items-center gap-1.5">
         <StatusPicker value={st} onChange={setSt} />
         <PriorityPicker value={priority} onChange={setPriority} />
+        {voice ? (
+          <button type="button" title="Voice note attached — tap to remove" onClick={() => setVoice(null)} className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">🎤 <X className="h-3 w-3" /></button>
+        ) : <VoiceRecorder onDone={setVoice} />}
         <DuePicker value={due} onChange={setDue} />
         <PersonPicker compact value={assignee ?? defaultAssignee ?? null} onChange={setAssignee} />
         <button type="submit" className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">Add</button>

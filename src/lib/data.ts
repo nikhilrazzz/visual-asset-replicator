@@ -242,6 +242,7 @@ export function useCreateTask() {
       status?: TaskStatus | undefined;
       priority?: TaskPriority | undefined;
       parent_id?: string | null | undefined;
+      description?: string | null | undefined;
     }) => {
       const uid = await currentUserId();
       if (!uid) throw new Error("Please sign in again");

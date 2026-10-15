@@ -24,6 +24,7 @@ import {
   useLinkProject,
   useUpdateTask,
 } from "@/lib/data";
+import { VoicePlayer, VoiceRecorder, voiceParts, voiceToken, VOICE_RE } from "./Voice";
 import { DuePicker, PersonAvatar, PersonPicker, PriorityPicker, StatusPicker, useTeamMap } from "./bits";
 
 const Ctx = createContext<{ open: (id: string) => void }>({ open: () => {} });
@@ -85,7 +86,7 @@ function TaskDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   useEffect(() => {
-    if (task) { setTitle(task.title); setDesc(task.description ?? ""); }
+    if (task) { setTitle(task.title); setDesc(voiceParts(task.description ?? "").text); }
   }, [task?.id, task?.title, task?.description]);
 
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
@@ -98,6 +99,9 @@ function TaskDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; 
     );
   const done = task.status === "done";
   const set = (patch: Record<string, unknown>) => update.mutate({ id: task.id, ...patch });
+  const voices = voiceParts(task.description ?? "").voices;
+  const saveDesc = (text: string, vs: string[]) =>
+    set({ description: [text.trim(), ...vs.map(voiceToken)].filter(Boolean).join("\n") });
 
   return (
     <div className="flex min-h-full flex-col">
@@ -163,14 +167,23 @@ function TaskDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; 
           )}
         </dl>
         <div>
-          <h4 className="mb-1.5 text-sm font-semibold">Description</h4>
+          <div className="mb-1.5 flex items-center justify-between">
+            <h4 className="text-sm font-semibold">Description</h4>
+            <VoiceRecorder onDone={(tok) => saveDesc(desc, [...voices, tok.replace(VOICE_RE, "$1")])} />
+          </div>
           <Textarea
             value={desc}
             placeholder="Add more detail…"
             onChange={(e) => setDesc(e.target.value)}
-            onBlur={() => desc !== (task.description ?? "") && set({ description: desc })}
+            onBlur={() => desc !== voiceParts(task.description ?? "").text && saveDesc(desc, voices)}
             className="min-h-24"
           />
+          {voices.map((v) => (
+            <div key={v} className="mt-1 flex items-center gap-1">
+              <VoicePlayer path={v} />
+              <button aria-label="Remove voice note" className="rounded-full p-1 text-muted-foreground hover:bg-muted" onClick={() => saveDesc(desc, voices.filter((x) => x !== v))}><X className="h-3.5 w-3.5" /></button>
+            </div>
+          ))}
         </div>
         {!task.parent_id && <Subtasks parentId={task.id} onOpen={onOpen} />}
         <Comments taskId={task.id} />
@@ -237,7 +250,12 @@ function Subtasks({ parentId, onOpen }: { parentId: string; onOpen: (id: string)
   );
 }
 
-function renderBody(body: string) {
+function renderBody(raw: string) {
+  const { text: body, voices } = voiceParts(raw);
+  return <>{body && <span>{renderText(body)}</span>}{voices.map((v) => <VoicePlayer key={v} path={v} />)}</>;
+}
+
+function renderText(body: string) {
   const parts = body.split(/(@\[[^\]]*\]\([0-9a-f-]{36}\))/g);
   return parts.map((p, i) => {
     const m = p.match(/^@\[([^\]]*)\]/);
@@ -280,12 +298,13 @@ function Comments({ taskId }: { taskId: string }) {
     onError: (e) => toast.error(e.message),
   });
   const post = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (override?: string) => {
       if (!me) throw new Error("Not signed in");
-      const { error } = await supabase.from("comments").insert({ task_id: taskId, author_id: me.id, body: body.trim() });
+      const text = typeof override === "string" ? override : body.trim();
+      const { error } = await supabase.from("comments").insert({ task_id: taskId, author_id: me.id, body: text });
       if (error) throw error;
     },
-    onSuccess: () => { setBody(""); qc.invalidateQueries({ queryKey: ["comments", taskId] }); qc.invalidateQueries({ queryKey: ["activity", taskId] }); },
+    onSuccess: (_d, override) => { if (typeof override !== "string") setBody(""); qc.invalidateQueries({ queryKey: ["comments", taskId] }); qc.invalidateQueries({ queryKey: ["activity", taskId] }); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -381,12 +400,15 @@ function Comments({ taskId }: { taskId: string }) {
           onKeyDown={(e) => {
             if (mention && matches.length && (e.key === "Enter" || e.key === "Tab")) { e.preventDefault(); pickMention(matches[0]!.id); return; }
             if (e.key === "Escape") setMention(null);
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && body.trim()) post.mutate();
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && body.trim()) post.mutate(undefined);
           }}
         />
         <div className="flex items-center justify-between">
           <MentionButton onPick={(name, id) => setBody((b) => `${b}${b && !b.endsWith(" ") ? " " : ""}@[${name}](${id}) `)} />
-          <Button size="sm" disabled={!body.trim() || post.isPending} onClick={() => post.mutate()}>Comment</Button>
+          <div className="flex items-center gap-1">
+            <VoiceRecorder onDone={(tok) => post.mutate(tok)} />
+            <Button size="sm" disabled={!body.trim() || post.isPending} onClick={() => post.mutate(undefined)}>Comment</Button>
+          </div>
         </div>
       </div>
     </div>
