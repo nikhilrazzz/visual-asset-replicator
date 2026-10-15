@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowLeft, AtSign, Check, CheckCircle2, Circle, FolderPlus, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, AtSign, Check, CheckCircle2, Circle, FolderPlus, Plus, SmilePlus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -226,12 +226,40 @@ function renderBody(body: string) {
   });
 }
 
+const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏", "🔥", "✅"];
+
 function Comments({ taskId }: { taskId: string }) {
   const { data = [] } = useQuery(commentsQuery(taskId));
   const { data: me } = useQuery(meQuery);
-  const { byId } = useTeamMap();
+  const { byId, team } = useTeamMap();
   const qc = useQueryClient();
   const [body, setBody] = useState("");
+  const [mention, setMention] = useState<{ start: number; q: string } | null>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const ids = data.map((c) => c.id);
+  const reactionsKey = ["comment_reactions", taskId, ids.join(",")];
+  const { data: reactions = [] } = useQuery({
+    queryKey: reactionsKey,
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("comment_reactions").select("*").in("comment_id", ids);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const react = useMutation({
+    mutationFn: async ({ commentId, emoji }: { commentId: string; emoji: string }) => {
+      if (!me) throw new Error("Not signed in");
+      const mine = reactions.find((r) => r.comment_id === commentId && r.user_id === me.id && r.emoji === emoji);
+      const q = mine
+        ? supabase.from("comment_reactions").delete().match({ comment_id: commentId, user_id: me.id, emoji })
+        : supabase.from("comment_reactions").insert({ comment_id: commentId, user_id: me.id, emoji });
+      const { error } = await q;
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["comment_reactions", taskId] }),
+    onError: (e) => toast.error(e.message),
+  });
   const post = useMutation({
     mutationFn: async () => {
       if (!me) throw new Error("Not signed in");
@@ -241,27 +269,101 @@ function Comments({ taskId }: { taskId: string }) {
     onSuccess: () => { setBody(""); qc.invalidateQueries({ queryKey: ["comments", taskId] }); qc.invalidateQueries({ queryKey: ["activity", taskId] }); },
     onError: (e) => toast.error(e.message),
   });
+
+  const onType = (value: string, caret: number) => {
+    setBody(value);
+    const m = value.slice(0, caret).match(/(?:^|\s)@([^\s@\[]*)$/);
+    setMention(m ? { start: caret - m[1]!.length - 1, q: m[1]!.toLowerCase() } : null);
+  };
+  const matches = mention
+    ? team.filter((p) => `${p.full_name ?? ""} ${p.email}`.toLowerCase().includes(mention.q)).slice(0, 6)
+    : [];
+  const pickMention = (id: string) => {
+    if (!mention) return;
+    const name = personName(byId.get(id));
+    const caret = mention.start + 1 + mention.q.length;
+    const next = `${body.slice(0, mention.start)}@[${name}](${id}) ${body.slice(caret)}`;
+    setBody(next);
+    setMention(null);
+    requestAnimationFrame(() => taRef.current?.focus());
+  };
+
   return (
     <div>
       <h4 className="mb-2 text-sm font-semibold">Comments</h4>
       <div className="space-y-3">
-        {data.map((c) => (
-          <div key={c.id} className="flex gap-2.5">
-            <PersonAvatar person={byId.get(c.author_id)} size={28} />
-            <div className="min-w-0 flex-1 rounded-xl bg-muted px-3 py-2">
-              <div className="text-xs"><span className="font-semibold">{personName(byId.get(c.author_id))}</span> <span className="text-muted-foreground">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span></div>
-              <p className="mt-0.5 whitespace-pre-wrap text-sm">{renderBody(c.body)}</p>
+        {data.map((c) => {
+          const rs = reactions.filter((r) => r.comment_id === c.id);
+          const grouped = [...new Set(rs.map((r) => r.emoji))].map((emoji) => {
+            const who = rs.filter((r) => r.emoji === emoji);
+            return { emoji, count: who.length, mine: who.some((r) => r.user_id === me?.id), names: who.map((r) => personName(byId.get(r.user_id))).join(", ") };
+          });
+          return (
+            <div key={c.id} className="flex gap-2.5">
+              <PersonAvatar person={byId.get(c.author_id)} size={28} />
+              <div className="min-w-0 flex-1">
+                <div className="rounded-xl bg-muted px-3 py-2">
+                  <div className="text-xs"><span className="font-semibold">{personName(byId.get(c.author_id))}</span> <span className="text-muted-foreground">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span></div>
+                  <p className="mt-0.5 whitespace-pre-wrap text-sm">{renderBody(c.body)}</p>
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  {grouped.map((g) => (
+                    <button
+                      key={g.emoji}
+                      title={g.names}
+                      onClick={() => react.mutate({ commentId: c.id, emoji: g.emoji })}
+                      className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs", g.mine ? "border-primary bg-primary-soft" : "border-border bg-card")}
+                    >
+                      <span>{g.emoji}</span><span>{g.count}</span>
+                    </button>
+                  ))}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button aria-label="Add reaction" className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"><SmilePlus className="h-3.5 w-3.5" /></button>
+                    </PopoverTrigger>
+                    <PopoverContent className="flex w-auto gap-1 rounded-full p-1.5" align="start">
+                      {QUICK_EMOJIS.map((e) => (
+                        <button key={e} className="rounded-full p-1 text-lg transition hover:scale-125" onClick={() => react.mutate({ commentId: c.id, emoji: e })}>{e}</button>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div className="mt-3 rounded-xl border border-border bg-card p-2">
+      <div className="relative mt-3 rounded-xl border border-border bg-card p-2">
+        {mention && matches.length > 0 && (
+          <div className="absolute bottom-full left-0 z-20 mb-1 w-72 max-w-full overflow-hidden rounded-xl border border-border bg-popover p-1 shadow-lg">
+            {matches.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); pickMention(p.id); }}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted"
+              >
+                <PersonAvatar person={p} size={24} />
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium">{personName(p)}</div>
+                  <div className="truncate text-xs text-muted-foreground">{p.email}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
         <Textarea
+          ref={taRef}
           value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Write a comment…"
+          onChange={(e) => onType(e.target.value, e.target.selectionStart ?? e.target.value.length)}
+          onBlur={() => setTimeout(() => setMention(null), 150)}
+          placeholder="Write a comment… type @ to mention"
           className="min-h-16 border-0 shadow-none focus-visible:ring-0"
-          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && body.trim()) post.mutate(); }}
+          onKeyDown={(e) => {
+            if (mention && matches.length && (e.key === "Enter" || e.key === "Tab")) { e.preventDefault(); pickMention(matches[0]!.id); return; }
+            if (e.key === "Escape") setMention(null);
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && body.trim()) post.mutate();
+          }}
         />
         <div className="flex items-center justify-between">
           <MentionButton onPick={(name, id) => setBody((b) => `${b}${b && !b.endsWith(" ") ? " " : ""}@[${name}](${id}) `)} />
