@@ -82,7 +82,7 @@ export function QuickAdd({
     >
       <Plus className="h-[18px] w-[18px] text-primary" />
       {mention && matches.length > 0 && (
-        <div className="absolute left-4 top-full z-30 mt-1 w-72 max-w-[calc(100%-2rem)] overflow-hidden rounded-xl border border-border bg-popover p-1 shadow-lg">
+        <div className="order-last w-full overflow-hidden rounded-xl border border-border bg-popover p-1">
           {matches.map((p) => (
             <button key={p.id} type="button" onMouseDown={(e) => { e.preventDefault(); pick(p.id); }} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted">
               <PersonAvatar person={p} size={24} />
