@@ -102,3 +102,14 @@ function Settings() {
     </div>
   );
 }
+
+/** Crop to a centred square and shrink to 256px JPEG so the photo stays small. */
+async function toAvatarDataUrl(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("Please pick an image file");
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(bmp.width, bmp.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  canvas.getContext("2d")!.drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, 256, 256);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
