@@ -1,0 +1,3 @@
+CREATE POLICY "voice read org" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'voice-notes' AND public.is_org_member(auth.uid()));
+CREATE POLICY "voice upload own" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'voice-notes' AND public.is_org_member(auth.uid()) AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "voice delete own" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'voice-notes' AND (storage.foldername(name))[1] = auth.uid()::text);
