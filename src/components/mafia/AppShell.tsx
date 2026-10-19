@@ -169,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button aria-label="Sign out" onClick={signOut} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"><LogOut className="h-4 w-4" /></button>
           </div>
         </aside>
-        <main className="min-w-0 flex-1 pb-20 md:pb-0">
+        <main className="min-w-0 flex-1 pb-32 md:pb-0">
           <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-border bg-card/95 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur md:hidden">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">M</span>
             <span className="flex-1 font-display text-base font-bold">Mafia</span>
