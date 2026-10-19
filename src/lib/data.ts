@@ -239,6 +239,7 @@ export function useCreateTask() {
       projectId?: string | null | undefined;
       assignee_id?: string | null | undefined;
       due_date?: string | null | undefined;
+      due_time?: string | null | undefined;
       status?: TaskStatus | undefined;
       priority?: TaskPriority | undefined;
       parent_id?: string | null | undefined;
