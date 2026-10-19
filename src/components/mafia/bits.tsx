@@ -188,15 +188,39 @@ export function DuePicker({
         />
         {showTime && (
           <div className="flex items-center gap-2 border-t border-border px-3 py-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <label className="text-xs text-muted-foreground" htmlFor="due-time">Time</label>
-            <input
-              id="due-time"
-              type="time"
-              value={timeValue?.slice(0, 5) ?? ""}
-              onChange={(e) => onTimeChange(e.target.value || null)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:border-primary"
-            />
+            <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Time</span>
+            {(() => {
+              const t = timeValue?.slice(0, 5) ?? "";
+              const h24 = t ? parseInt(t.slice(0, 2), 10) : null;
+              const minute = t ? t.slice(3, 5) : "";
+              const period = h24 === null ? "AM" : h24 < 12 ? "AM" : "PM";
+              const hour12 = h24 === null ? "" : String(h24 % 12 === 0 ? 12 : h24 % 12);
+              const set = (h12: string, m: string, p: string) => {
+                if (!h12) { onTimeChange(null); return; }
+                let h = parseInt(h12, 10) % 12;
+                if (p === "PM") h += 12;
+                onTimeChange(`${String(h).padStart(2, "0")}:${m || "00"}`);
+              };
+              const sel = "rounded-md border border-border bg-background px-1.5 py-1 text-sm outline-none focus:border-primary";
+              return (
+                <>
+                  <select aria-label="Hour" value={hour12} onChange={(e) => set(e.target.value, minute || "00", period)} className={sel}>
+                    <option value="">--</option>
+                    {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((h) => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="text-muted-foreground">:</span>
+                  <select aria-label="Minute" value={minute} onChange={(e) => set(hour12 || "12", e.target.value, period)} className={sel}>
+                    <option value="">--</option>
+                    {Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0")).map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <select aria-label="AM or PM" value={period} onChange={(e) => set(hour12 || "12", minute || "00", e.target.value)} className={sel}>
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </>
+              );
+            })()}
             {timeValue && (
               <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => onTimeChange(null)}>
                 Clear
