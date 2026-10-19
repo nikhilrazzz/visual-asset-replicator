@@ -178,14 +178,40 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
           {children}
         </main>
-        <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-          {[...NAV, { to: "/settings", label: "Me", icon: Settings } as const].map((n) => (
-            <Link key={n.to} to={n.to} className="relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-muted-foreground" activeProps={{ className: "!text-primary" }}>
-              <n.icon className="h-5 w-5" />
-              {n.label}
-              {n.to === "/inbox" && unread > 0 && <span className="absolute right-1/4 top-1 h-2 w-2 rounded-full bg-primary" />}
-            </Link>
-          ))}
+        <nav
+          aria-label="Main navigation"
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+        >
+          <div className="pointer-events-auto flex w-[90%] max-w-[440px] items-center justify-between gap-1 rounded-full border border-white/[0.18] bg-[rgba(20,20,23,0.78)] p-2 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.75),0_4px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
+            {[...NAV, { to: "/settings", label: "Me", icon: Settings } as const].map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                aria-label={n.label}
+                className="group relative flex h-14 flex-1 items-center justify-center rounded-full text-muted-foreground transition-transform duration-200 active:scale-90"
+                activeProps={{ className: "!text-primary" }}
+              >
+                {({ isActive }) => (
+                  <>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "absolute inset-x-1 inset-y-1.5 rounded-full border border-white/10 bg-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] transition-all duration-300 ease-out motion-reduce:transition-none",
+                        isActive ? "scale-100 opacity-100" : "scale-75 opacity-0",
+                      )}
+                    />
+                    <span className="relative flex flex-col items-center gap-0.5">
+                      <n.icon className={cn("h-6 w-6 transition-transform duration-200 motion-reduce:transition-none", isActive && "scale-105")} />
+                      <span className={cn("text-[10px] font-medium", isActive ? "text-primary" : "text-muted-foreground/80")}>{n.label}</span>
+                      {n.to === "/inbox" && unread > 0 && (
+                        <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary ring-2 ring-[rgba(20,20,23,0.9)]" />
+                      )}
+                    </span>
+                  </>
+                )}
+              </Link>
+            ))}
+          </div>
         </nav>
       </div>
     </TaskPanelProvider>
