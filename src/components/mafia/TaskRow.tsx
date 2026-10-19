@@ -28,7 +28,7 @@ export function TaskRow({ task, showStatus = true }: { task: TaskWithProjects; s
       <div className="flex shrink-0 items-center gap-1.5">
         {showStatus && <span className="hidden sm:inline"><StatusPicker value={task.status} onChange={(s) => update.mutate({ id: task.id, status: s })} /></span>}
         <PriorityPicker value={task.priority} onChange={(p) => update.mutate({ id: task.id, priority: p })} />
-        <DuePicker value={task.due_date} done={done} onChange={(d) => update.mutate({ id: task.id, due_date: d })} />
+        <DuePicker value={task.due_date} done={done} onChange={(d) => update.mutate({ id: task.id, due_date: d })} timeValue={task.due_time} onTimeChange={(t) => update.mutate({ id: task.id, due_time: t })} />
         <PersonPicker compact value={task.assignee_id} onChange={(a) => update.mutate({ id: task.id, assignee_id: a })} />
       </div>
     </div>
@@ -50,6 +50,7 @@ export function QuickAdd({
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState<string | null>(defaultAssignee ?? null);
   const [due, setDue] = useState<string | null>(null);
+  const [dueTime, setDueTime] = useState<string | null>(null);
   const [priority, setPriority] = useState<TaskPriority>("none");
   const [st, setSt] = useState<TaskStatus>(status ?? "todo");
   const [voice, setVoice] = useState<string | null>(null);
@@ -76,10 +77,11 @@ export function QuickAdd({
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
-        create.mutate({ title, projectId, assignee_id: assignee ?? defaultAssignee ?? null, due_date: due, status: st, priority, description: voice });
+        create.mutate({ title, projectId, assignee_id: assignee ?? defaultAssignee ?? null, due_date: due, due_time: dueTime, status: st, priority, description: voice });
         setTitle("");
         setVoice(null);
         setDue(null);
+        setDueTime(null);
         setPriority("none");
       }}
     >
@@ -110,7 +112,7 @@ export function QuickAdd({
         {voice ? (
           <button type="button" title="Voice note attached — tap to remove" onClick={() => setVoice(null)} className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">🎤 <X className="h-3 w-3" /></button>
         ) : <VoiceRecorder onDone={setVoice} />}
-        <DuePicker value={due} onChange={setDue} />
+        <DuePicker value={due} onChange={setDue} timeValue={dueTime} onTimeChange={setDueTime} />
         <PersonPicker compact value={assignee ?? defaultAssignee ?? null} onChange={setAssignee} />
         <button type="submit" className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">Add</button>
       </div>

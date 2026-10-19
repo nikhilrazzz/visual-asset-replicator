@@ -82,7 +82,7 @@ export function BoardView({ tasks, projectId }: { tasks: TaskWithProjects[]; pro
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <PriorityPicker value={t.priority} onChange={(p) => update.mutate({ id: t.id, priority: p })} />
-                      <DuePicker value={t.due_date} done={t.status === "done"} onChange={(d) => update.mutate({ id: t.id, due_date: d })} />
+                      <DuePicker value={t.due_date} done={t.status === "done"} onChange={(d) => update.mutate({ id: t.id, due_date: d })} timeValue={t.due_time} onTimeChange={(tm) => update.mutate({ id: t.id, due_time: tm })} />
                     </div>
                     <PersonPicker compact value={t.assignee_id} onChange={(a) => update.mutate({ id: t.id, assignee_id: a })} />
                   </div>

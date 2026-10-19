@@ -139,7 +139,7 @@ function TaskDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; 
           <dt className="text-muted-foreground">Start date</dt>
           <dd><DuePicker value={task.start_date} onChange={(v) => set({ start_date: v })} /></dd>
           <dt className="text-muted-foreground">Due date</dt>
-          <dd><DuePicker value={task.due_date} done={done} onChange={(v) => set({ due_date: v })} /></dd>
+          <dd><DuePicker value={task.due_date} done={done} onChange={(v) => set({ due_date: v })} timeValue={task.due_time} onTimeChange={(t) => set({ due_time: t })} /></dd>
           <dt className="text-muted-foreground">Repeat</dt>
           <dd>
             <select
