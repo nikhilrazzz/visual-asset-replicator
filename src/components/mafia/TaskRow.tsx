@@ -28,7 +28,7 @@ export function TaskRow({ task, showStatus = true }: { task: TaskWithProjects; s
       <div className="flex shrink-0 items-center gap-1.5">
         {showStatus && <span className="hidden sm:inline"><StatusPicker value={task.status} onChange={(s) => update.mutate({ id: task.id, status: s })} /></span>}
         <PriorityPicker value={task.priority} onChange={(p) => update.mutate({ id: task.id, priority: p })} />
-        <DuePicker value={task.due_date} done={done} onChange={(d) => update.mutate({ id: task.id, due_date: d })} />
+        <DuePicker value={task.due_date} done={done} onChange={(d) => update.mutate({ id: task.id, due_date: d })} timeValue={task.due_time} onTimeChange={(t) => update.mutate({ id: task.id, due_time: t })} />
         <PersonPicker compact value={task.assignee_id} onChange={(a) => update.mutate({ id: task.id, assignee_id: a })} />
       </div>
     </div>
