@@ -457,6 +457,7 @@ export type Database = {
           creator_id: string
           description: string | null
           due_date: string | null
+          due_time: string | null
           id: string
           parent_id: string | null
           position: number
@@ -475,6 +476,7 @@ export type Database = {
           creator_id: string
           description?: string | null
           due_date?: string | null
+          due_time?: string | null
           id?: string
           parent_id?: string | null
           position?: number
@@ -493,6 +495,7 @@ export type Database = {
           creator_id?: string
           description?: string | null
           due_date?: string | null
+          due_time?: string | null
           id?: string
           parent_id?: string | null
           position?: number

@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ADD COLUMN due_time time; COMMENT ON COLUMN public.tasks.due_time IS 'Optional deadline time-of-day paired with due_date.';
