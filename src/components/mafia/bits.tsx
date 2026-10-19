@@ -156,24 +156,56 @@ export function dueTone(due: string | null, done: boolean) {
   return "text-muted-foreground";
 }
 
-export function DuePicker({ value, onChange, done = false }: { value: string | null; onChange: (d: string | null) => void; done?: boolean }) {
+export function DuePicker({
+  value,
+  onChange,
+  done = false,
+  timeValue,
+  onTimeChange,
+}: {
+  value: string | null;
+  onChange: (d: string | null) => void;
+  done?: boolean;
+  timeValue?: string | null | undefined;
+  onTimeChange?: ((t: string | null) => void) | undefined;
+}) {
   const [open, setOpen] = useState(false);
+  const showTime = onTimeChange !== undefined;
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button type="button" onClick={(e) => e.stopPropagation()} className={cn("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs hover:bg-muted", dueTone(value, done))}>
           <CalendarDays className="h-3.5 w-3.5" />
           {value ? (isToday(parseISO(value)) ? "Today" : format(parseISO(value), "MMM d")) : ""}
+          {showTime && timeValue ? <span className="text-muted-foreground">· {timeValue.slice(0, 5)}</span> : null}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start" onClick={(e) => e.stopPropagation()}>
         <Calendar
           mode="single"
           selected={value ? parseISO(value) : undefined}
-          onSelect={(d) => { onChange(d ? format(d, "yyyy-MM-dd") : null); setOpen(false); }}
+          onSelect={(d) => { onChange(d ? format(d, "yyyy-MM-dd") : null); if (!showTime) setOpen(false); }}
         />
+        {showTime && (
+          <div className="flex items-center gap-2 border-t border-border px-3 py-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <label className="text-xs text-muted-foreground" htmlFor="due-time">Time</label>
+            <input
+              id="due-time"
+              type="time"
+              value={timeValue?.slice(0, 5) ?? ""}
+              onChange={(e) => onTimeChange(e.target.value || null)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm outline-none focus:border-primary"
+            />
+            {timeValue && (
+              <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => onTimeChange(null)}>
+                Clear
+              </button>
+            )}
+          </div>
+        )}
         {value && (
-          <button className="w-full border-t border-border py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => { onChange(null); setOpen(false); }}>
+          <button className="w-full border-t border-border py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => { onChange(null); onTimeChange?.(null); setOpen(false); }}>
             Clear date
           </button>
         )}
